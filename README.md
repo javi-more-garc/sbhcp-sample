@@ -14,6 +14,7 @@
 
 ## Modules
 
+* common (common utilities and classes)
 * model (the DB entities)
 * core (services and repositories)
 * web (rest interface)
