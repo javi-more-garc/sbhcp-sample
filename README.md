@@ -1,4 +1,4 @@
- # sbhcp-sample
+# sbhcp-sample
  
  This projects contains a SAP Cloud HANA HCP Sample application using 
  
