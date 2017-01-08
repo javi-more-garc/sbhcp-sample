@@ -1,10 +1,12 @@
 package com.jmgits.sample.sbhcp.web.base.base.controller;
 
-
+import com.jmgits.sample.sbhcp.common.exception.ErrorCode;
+import com.jmgits.sample.sbhcp.common.exception.ErrorCodeException;
 import com.jmgits.sample.sbhcp.web.base.base.view.ErrorResponse;
 import org.apache.catalina.connector.ResponseFacade;
 import org.springframework.boot.autoconfigure.web.ErrorAttributes;
 import org.springframework.boot.autoconfigure.web.ErrorController;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestAttributes;
@@ -14,14 +16,17 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
+import java.util.Map;
+import java.util.Optional;
 
-import static java.util.Optional.ofNullable;
+import static com.jmgits.sample.sbhcp.common.exception.ErrorCode.*;
+import static com.jmgits.sample.sbhcp.common.util.ExceptionUtils.getRootMessage;
 import static javax.servlet.RequestDispatcher.ERROR_STATUS_CODE;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.util.Assert.notNull;
 
 /**
- * Created by javi.more.garc on 03/10/16.
+ * Created by javi.more.garc on 08/01/17.
  */
 @RestController
 @RequestMapping("/error")
@@ -53,10 +58,19 @@ public class SimpleErrorController implements ErrorController {
         RequestAttributes requestAttributes = new ServletRequestAttributes(request);
         Throwable exception = this.errorAttributes.getError(requestAttributes);
 
-        return generateResponse(request, response, ofNullable(exception)
-                .map(Throwable::getMessage)
-                .orElse("General error")
-        );
+        if (!Optional.ofNullable(exception).isPresent()) {
+
+            Map<String, Object> requestErrorAttributes =
+                    this.errorAttributes.getErrorAttributes(new ServletRequestAttributes(request), false);
+
+            ErrorCode code = errorCode(requestErrorAttributes);
+
+            return generateResponse(request, response, code, HttpStatus.valueOf(code.getStatus()).getReasonPhrase());
+        }
+
+        ErrorCode errorCode = getErrorCode(exception);
+
+        return generateResponse(request, response, errorCode, getRootMessage(exception));
     }
 
     //
@@ -77,6 +91,13 @@ public class SimpleErrorController implements ErrorController {
 
     }
 
+    private ErrorCode getErrorCode(Throwable exception) {
+
+        boolean errorCodeException = exception.getClass().isAssignableFrom(ErrorCodeException.class);
+
+        return errorCodeException ? ((ErrorCodeException) exception).getCode() : GENERIC;
+    }
+
     private ResponseFacade getResponseFacade(HttpServletResponse response) {
 
         if (!(response instanceof HttpServletResponseWrapper) && !(response instanceof ResponseFacade)) {
@@ -94,12 +115,38 @@ public class SimpleErrorController implements ErrorController {
 
     }
 
-    private ErrorResponse generateResponse(HttpServletRequest request, HttpServletResponse response, String message) {
+    private ErrorResponse generateResponse(HttpServletRequest request, HttpServletResponse response, ErrorCode code, String message) {
 
-        response.setStatus(500);
-        request.setAttribute(ERROR_STATUS_CODE, 500);
+        int status = code.getStatus();
 
-        return new ErrorResponse(message);
+        response.setStatus(status);
+        request.setAttribute(ERROR_STATUS_CODE, status);
+
+        return new ErrorResponse(code, message);
+
+    }
+
+    private ErrorCode errorCode(Map<String, Object> errorAttributes) {
+
+        Integer status = (Integer) errorAttributes.getOrDefault("status", 500);
+
+        if (status == 400) {
+            return GENERIC_BAD_REQUEST;
+        }
+
+        if (status == 401) {
+            return GENERIC_UNAUTHORIZED;
+        }
+
+        if (status == 403) {
+            return GENERIC_FORBIDDEN;
+        }
+
+        if (status == 404) {
+            return GENERIC_NOT_FOUND;
+        }
+
+        return GENERIC;
 
     }
 }

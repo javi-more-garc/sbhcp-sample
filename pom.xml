@@ -12,6 +12,7 @@
         <module>model</module>
         <module>core</module>
         <module>web</module>
+        <module>common</module>
     </modules>
 
     <packaging>pom</packaging>

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
- * Created by javi.more.garc on 03/11/16.
+ * Created by javi.more.garc on 08/01/17.
  */
 @Configuration
 @ComponentScan(basePackages = { //
