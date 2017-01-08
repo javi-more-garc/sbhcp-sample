@@ -1,7 +1,7 @@
 package com.jmgits.sample.sbhcp.web.user.rest;
 
-import com.jmgits.sample.sbhcp.core.base.content.service.CategoryService;
-import com.jmgits.sample.sbhcp.model.domain.content.Category;
+import com.jmgits.sample.sbhcp.core.base.content.service.ArticleService;
+import com.jmgits.sample.sbhcp.model.domain.content.Article;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,17 +17,17 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping("/api/v1/user/articles")
 public class ArticleRestController {
 
-    private final CategoryService categoryService;
+    private final ArticleService articleService;
 
-    public ArticleRestController(CategoryService categoryService) {
+    public ArticleRestController(ArticleService articleService) {
 
-        notNull(categoryService);
+        notNull(articleService);
 
-        this.categoryService = categoryService;
+        this.articleService = articleService;
     }
 
     @RequestMapping(method = GET)
-    public List<Category> findAll(){
-        return categoryService.findAll();
+    public List<Article> findAll(){
+        return articleService.findAll();
     }
 }

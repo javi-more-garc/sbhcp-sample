@@ -7,7 +7,7 @@
  
  We're using a simple multi maven approach to support for code base growth
   
- ## Requirements to run the application
+## Requirements to run the application
  
 * Java 8
 * Maven
